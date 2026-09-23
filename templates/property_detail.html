@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}{{ property.address }} - Property Details{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col">
+        <a href="{{ url_for('marketplace') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Marketplace
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Property Image and Info -->
+    <div class="col-md-7">
+        <div class="card mb-4">
+            <img src="{{ property.image_url }}" class="card-img-top" alt="{{ property.address }}" style="max-height: 400px; object-fit: cover;">
+            <div class="card-body">
+                <h2>{{ property.address }}</h2>
+                <p class="text-muted">
+                    <i class="fas fa-map-marker-alt"></i> {{ property.city }}, {{ property.state }} {{ property.zipcode }}
+                </p>
+                
+                <h3 class="text-primary mb-4">${{ "{:,.0f}".format(property.price) }}</h3>
+                
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <i class="fas fa-bed fa-2x text-primary mb-2"></i>
+                            <h5>{{ property.bedrooms }}</h5>
+                            <small class="text-muted">Bedrooms</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <i class="fas fa-bath fa-2x text-primary mb-2"></i>
+                            <h5>{{ property.bathrooms }}</h5>
+                            <small class="text-muted">Bathrooms</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <i class="fas fa-ruler-combined fa-2x text-primary mb-2"></i>
+                            <h5>{{ property.sqft }}</h5>
+                            <small class="text-muted">Sq Ft</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <i class="fas fa-home fa-2x text-primary mb-2"></i>
+                            <h5>{{ property.property_type }}</h5>
+                            <small class="text-muted">Type</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <h5>Description</h5>
+                <p>{{ property.description }}</p>
+                
+                <h5 class="mt-4">Location Details</h5>
+                <p><strong>Price per Sq Ft:</strong> ${{ "%.2f"|format(property.price / property.sqft) }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI Analysis and Actions -->
+    <div class="col-md-5">
+        <!-- AI Prediction -->
+        <div class="card mb-4 border-info">
+            <div class="card-header bg-info text-white">
+                <h5><i class="fas fa-brain"></i> AI Market Analysis (NVIDIA)</h5>
+            </div>
+            <div class="card-body">
+                {% if prediction %}
+                <div class="mb-3">
+                    <h6>Predicted Value (1 Year)</h6>
+                    <h3 class="text-success">${{ "{:,.0f}".format(prediction.predicted_value) }}</h3>
+                    <small class="text-muted">
+                        Change: 
+                        {% set change = ((prediction.predicted_value - property.price) / property.price * 100) %}
+                        <span class="{% if change > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ "%.2f"|format(change) }}%
+                        </span>
+                    </small>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Recommendation</h6>
+                    <h4>
+                        {% if prediction.recommendation == 'Buy' %}
+                            <span class="badge bg-success">BUY</span>
+                        {% elif prediction.recommendation == 'Sell' %}
+                            <span class="badge bg-danger">SELL</span>
+                        {% else %}
+                            <span class="badge bg-warning">HOLD</span>
+                        {% endif %}
+                    </h4>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Confidence Score</h6>
+                    <div class="progress">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ prediction.confidence_score }}%">
+                            {{ prediction.confidence_score }}%
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Key Factors</h6>
+                    <ul class="small">
+                        {% if prediction.factors %}
+                            {% set factors_list = prediction.factors|from_json %}
+                            {% for factor in factors_list %}
+                            <li>{{ factor }}</li>
+                            {% endfor %}
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <small class="text-muted">Analysis Date: {{ prediction.prediction_date.strftime('%Y-%m-%d') }}</small>
+                {% else %}
+                <p class="text-muted">AI analysis not available</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Weather Impact -->
+        <div class="card mb-4 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5><i class="fas fa-cloud-sun"></i> Weather Impact</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Current Weather:</strong> {{ weather.description|title }}</p>
+                <p><strong>Temperature:</strong> {{ "%.1f"|format(weather.temperature) }}°F</p>
+                <p><strong>Humidity:</strong> {{ weather.humidity }}%</p>
+                <p><strong>Market Impact:</strong> 
+                    <span class="{% if weather.impact > 0 %}text-success{% elif weather.impact < 0 %}text-danger{% else %}text-muted{% endif %}">
+                        {{ "%.2f"|format(weather.impact_percentage) }}%
+                    </span>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Purchase Action -->
+        {% if property.status == 'available' %}
+        <div class="card border-primary">
+            <div class="card-body">
+                <h5 class="card-title">Purchase This Property</h5>
+                <p class="card-text">
+                    <strong>Your Balance:</strong> ${{ "{:,.2f}".format(current_user.balance) }}<br>
+                    <strong>Property Price:</strong> ${{ "{:,.0f}".format(property.price) }}
+                </p>
+                
+                {% if current_user.balance >= property.price %}
+                <form method="POST" action="{{ url_for('buy_property', property_id=property.id) }}" onsubmit="return confirm('Are you sure you want to purchase this property?');">
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        <i class="fas fa-shopping-cart"></i> Buy Now
+                    </button>
+                </form>
+                {% else %}
+                <div class="alert alert-danger">
+                    Insufficient funds to purchase this property
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="fas fa-info-circle"></i> This property is no longer available
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Comparable Comparables -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5><i class="fas fa-chart-line"></i> Comparable Properties</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Address</th>
+                                <th>Price</th>
+                                <th>Beds/Baths</th>
+                                <th>Sq Ft</th>
+                                <th>Price/Sq Ft</th>
+                                <th>Days on Market</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for comp in comparables %}
+                            <tr>
+                                <td>{{ comp.address }}</td>
+                                <td>${{ "{:,.0f}".format(comp.price) }}</td>
+                                <td>{{ comp.bedrooms }}/{{ comp.bathrooms }}</td>
+                                <td>{{ comp.sqft }}</td>
+                                <td>${{ "%.2f"|format(comp.price_per_sqft) }}</td>
+                                <td>{{ comp.days_on_market }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any property-specific JavaScript here
+});
+</script>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Profile Settings{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="fas fa-user-circle"></i> Profile Settings</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+                <h4>{{ current_user.username }}</h4>
+                <p class="text-muted">{{ current_user.email }}</p>
+                <span class="badge {% if current_user.role == 'admin' %}bg-danger{% else %}bg-primary{% endif %} mb-3">
+                    {{ current_user.role|title }}
+                </span>
+                <hr>
+                <p><strong>Member Since:</strong><br>{{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+                <p><strong>Account Balance:</strong><br>
+                    <span class="text-success h4">${{ "{:,.2f}".format(current_user.balance) }}</span>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-edit"></i> Update Profile</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_profile') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" value="{{ current_user.username }}" disabled>
+                        <small class="text-muted">Username cannot be changed</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" value="{{ current_user.email }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <input type="text" class="form-control" value="{{ current_user.role|title }}" disabled>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Change Password</h6>
+                    <div class="mb-3">
+                        <label class="form-label">New Password</label>
+                        <input type="password" class="form-control" name="new_password" placeholder="Leave blank to keep current password">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" name="confirm_password" placeholder="Confirm new password">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Profile
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        {% if current_user.role == 'investor' %}
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5><i class="fas fa-chart-bar"></i> Account Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Properties Owned:</strong> {{ current_user.owned_properties|length }}</p>
+                        <p><strong>Total Transactions:</strong> {{ current_user.transactions|length }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Purchases:</strong> {{ current_user.transactions|selectattr('transaction_type', 'equalto', 'buy')|list|length }}</p>
+                        <p><strong>Sales:</strong> {{ current_user.transactions|selectattr('transaction_type', 'equalto', 'sell')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

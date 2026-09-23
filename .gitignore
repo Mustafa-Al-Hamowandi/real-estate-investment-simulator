@@ -1,0 +1,11 @@
+venv/
+.env
+__pycache__/
+*.pyc
+*.db
+instance/
+static/user_videos/*
+!static/user_videos/.gitkeep
+*.zip
+.vs/
+.vscode/

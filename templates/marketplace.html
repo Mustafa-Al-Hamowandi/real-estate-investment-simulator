@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Property Marketplace{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="fas fa-store"></i> Property Marketplace</h1>
+        <p class="text-muted">Browse and invest in available properties</p>
+    </div>
+</div>
+
+<!-- Market Info Banner -->
+{% if market %}
+<div class="alert alert-info mb-4">
+    <div class="row">
+        <div class="col-md-4">
+            <strong>Current Interest Rate:</strong> {{ market.interest_rate }}%
+        </div>
+        <div class="col-md-4">
+            <strong>Market Trend:</strong> 
+            {% if market.market_trend == 'bullish' %}
+                <span class="text-success">Bullish <i class="fas fa-arrow-up"></i></span>
+            {% elif market.market_trend == 'bearish' %}
+                <span class="text-danger">Bearish <i class="fas fa-arrow-down"></i></span>
+            {% else %}
+                <span class="text-warning">Stable <i class="fas fa-minus"></i></span>
+            {% endif %}
+        </div>
+        <div class="col-md-4">
+            <strong>Available Properties:</strong> {{ properties|length }}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Property Listings -->
+<div class="row">
+    {% for property in properties %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <img src="{{ property.image_url }}" class="card-img-top" alt="{{ property.address }}" style="height: 200px; object-fit: cover;">
+            <div class="card-body">
+                <h5 class="card-title">{{ property.address }}</h5>
+                <p class="text-muted mb-2">
+                    <i class="fas fa-map-marker-alt"></i> {{ property.city }}, {{ property.state }} {{ property.zipcode }}
+                </p>
+                
+                <h4 class="text-primary mb-3">${{ "{:,.0f}".format(property.price) }}</h4>
+                
+                <div class="row mb-3">
+                    <div class="col-4">
+                        <i class="fas fa-bed"></i> {{ property.bedrooms }} beds
+                    </div>
+                    <div class="col-4">
+                        <i class="fas fa-bath"></i> {{ property.bathrooms }} baths
+                    </div>
+                    <div class="col-4">
+                        <i class="fas fa-ruler-combined"></i> {{ property.sqft }} sqft
+                    </div>
+                </div>
+                
+                <span class="badge bg-secondary mb-3">{{ property.property_type }}</span>
+                
+                <p class="card-text small">{{ property.description[:100] }}...</p>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{{ url_for('property_detail', property_id=property.id) }}" class="btn btn-primary w-100">
+                    <i class="fas fa-eye"></i> View Details & AI Analysis
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    {% if not properties %}
+    <div class="col-12">
+        <div class="alert alert-warning text-center">
+            <h4>No properties available at the moment</h4>
+            <p>Please check back later or contact an administrator</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

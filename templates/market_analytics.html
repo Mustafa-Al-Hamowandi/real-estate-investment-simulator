@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}Market Analytics{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="fas fa-chart-pie"></i> Real Estate Market Analytics</h1>
+        <p class="text-muted">Comprehensive market insights and trends</p>
+    </div>
+</div>
+
+<!-- Market Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="text-muted">Average Property Price</h6>
+                <h2 class="text-primary">${{ "{:,.0f}".format(avg_price) }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="text-muted">Total Properties</h6>
+                <h2 class="text-success">{{ total_properties }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="text-muted">Available</h6>
+                <h2 class="text-info">{{ available_properties }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="text-muted">Sold</h6>
+                <h2 class="text-warning">{{ total_properties - available_properties }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Market Trend Chart -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line"></i> Market Trend (Last 30 Days)</h5>
+            </div>
+            <div class="card-body">
+                {% if market_history %}
+                <canvas id="marketTrendChart" style="max-height: 300px;"></canvas>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No market history data available yet. Data will appear as transactions occur.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-percent"></i> Interest Rate History</h5>
+            </div>
+            <div class="card-body">
+                {% if market_history %}
+                <canvas id="interestRateChart" style="max-height: 300px;"></canvas>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No rate history available.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Market Insights -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h5><i class="fas fa-building"></i> Regional Market Trends</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <h6>Median Price</h6>
+                        <h4>${{ "{:,.0f}".format(market_trends.median_price) }}</h4>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Monthly Change</h6>
+                        <h4 class="{% if market_trends.price_change_month > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ "%.2f"|format(market_trends.price_change_month) }}%
+                        </h4>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Yearly Change</h6>
+                        <h4 class="{% if market_trends.price_change_year > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ "%.2f"|format(market_trends.price_change_year) }}%
+                        </h4>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Avg Days on Market</h6>
+                        <h4>{{ market_trends.days_on_market }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Market Indicators -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-thermometer-half"></i> Market Health Indicators</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Supply & Demand</span>
+                        <span class="{% if supply_demand_health == 'Healthy' %}text-success{% elif supply_demand_health == 'High Demand' %}text-info{% else %}text-warning{% endif %}">
+                            {{ supply_demand_health }}
+                        </span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar {% if supply_demand_health == 'Healthy' %}bg-success{% elif supply_demand_health == 'High Demand' %}bg-info{% else %}bg-warning{% endif %}" 
+                             style="width: {% if supply_demand_health == 'Healthy' %}75{% elif supply_demand_health == 'High Demand' %}90{% else %}50{% endif %}%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Interest Rate Trend</span>
+                        <span class="{% if rate_trend == 'Falling' %}text-success{% elif rate_trend == 'Rising' %}text-danger{% else %}text-info{% endif %}">
+                            {{ rate_trend }}
+                        </span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar {% if rate_trend == 'Falling' %}bg-success{% elif rate_trend == 'Rising' %}bg-danger{% else %}bg-info{% endif %}" 
+                             style="width: {% if rate_trend == 'Stable' %}50{% elif rate_trend == 'Falling' %}70{% else %}80{% endif %}%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Market Sentiment</span>
+                        <span class="{% if market_sentiment == 'Positive' %}text-success{% elif market_sentiment == 'Negative' %}text-danger{% else %}text-info{% endif %}">
+                            {{ market_sentiment }}
+                        </span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar {% if market_sentiment == 'Positive' %}bg-success{% elif market_sentiment == 'Negative' %}bg-danger{% else %}bg-info{% endif %}" 
+                             style="width: {% if market_sentiment == 'Positive' %}85{% elif market_sentiment == 'Negative' %}30{% else %}65{% endif %}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-map-marked-alt"></i> Top Performing Cities</h5>
+            </div>
+            <div class="card-body">
+                {% if top_cities %}
+                <canvas id="cityPerformanceChart" style="max-height: 300px;"></canvas>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No city data available yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Market Insights -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5><i class="fas fa-lightbulb"></i> Market Insights</h5>
+                <ul>
+                    <li><strong>Market Status:</strong> With {{ available_properties }} properties available out of {{ total_properties }}, 
+                        {% if available_properties / total_properties > 0.6 %}buyers have excellent selection{% elif available_properties / total_properties > 0.4 %}the market is balanced{% else %}it's a competitive market{% endif %}.
+                    </li>
+                    <li><strong>Price Trends:</strong> Average prices are {% if market_trends.price_change_month > 0 %}increasing{% else %}decreasing{% endif %} by {{ "%.2f"|format(market_trends.price_change_month|abs) }}% this month.</li>
+                    <li><strong>Market Timing:</strong> Properties are spending an average of {{ market_trends.days_on_market }} days on the market.</li>
+                    <li><strong>AI Recommendation:</strong> Current market conditions suggest {% if market_trends.price_change_year > 5 %}caution due to rapid appreciation{% elif market_trends.price_change_year < 0 %}opportunities for value buying{% else %}stable investment potential{% endif %}.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+{% if market_history %}
+// Market Trend Chart
+const marketCtx = document.getElementById('marketTrendChart');
+if (marketCtx) {
+    new Chart(marketCtx, {
+        type: 'line',
+        data: {
+            labels: [
+                {% for data in market_history %}
+                '{{ data.date.strftime("%m/%d") }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Average Price',
+                data: [
+                    {% for data in market_history %}
+                    {{ data.avg_price if data.avg_price else avg_price }},
+                    {% endfor %}
+                ],
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false
+                }
+            }
+        }
+    });
+}
+
+// Interest Rate Chart
+const rateCtx = document.getElementById('interestRateChart');
+if (rateCtx) {
+    new Chart(rateCtx, {
+        type: 'line',
+        data: {
+            labels: [
+                {% for data in market_history %}
+                '{{ data.date.strftime("%m/%d") }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Interest Rate %',
+                data: [
+                    {% for data in market_history %}
+                    {{ data.interest_rate }},
+                    {% endfor %}
+                ],
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false
+                }
+            }
+        }
+    });
+}
+{% endif %}
+
+{% if top_cities %}
+// City Performance Chart
+const cityCtx = document.getElementById('cityPerformanceChart');
+if (cityCtx) {
+    new Chart(cityCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for city in top_cities %}
+                '{{ city.city }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Average Price',
+                data: [
+                    {% for city in top_cities %}
+                    {{ city.avg_price }},
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                    'rgb(255, 206, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(153, 102, 255)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+{% endif %}
+</script>
+{% endblock %}

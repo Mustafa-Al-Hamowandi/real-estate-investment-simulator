@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}AI Portfolio Optimizer{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="fas fa-chart-line text-primary"></i> AI Portfolio Optimizer</h1>
+        <p class="text-muted">Advanced AI-powered portfolio analysis and optimization recommendations</p>
+    </div>
+</div>
+
+{% if optimization %}
+<!-- Key Metrics -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card border-primary">
+            <div class="card-body">
+                <h3 class="text-primary">{{ optimization.diversification_score }}</h3>
+                <p class="text-muted mb-0">Diversification Score</p>
+                <small class="text-muted">out of 100</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card {% if optimization.risk_level == 'Low' %}border-success{% elif optimization.risk_level == 'Medium' %}border-warning{% else %}border-danger{% endif %}">
+            <div class="card-body">
+                <h3 class="{% if optimization.risk_level == 'Low' %}text-success{% elif optimization.risk_level == 'Medium' %}text-warning{% else %}text-danger{% endif %}">
+                    {{ optimization.risk_level }}
+                </h3>
+                <p class="text-muted mb-0">Risk Level</p>
+                <small class="text-muted">{{ optimization.get('risk_reason', '') }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card border-info">
+            <div class="card-body">
+                <h3 class="text-info">{{ properties|length }}</h3>
+                <p class="text-muted mb-0">Total Properties</p>
+                <small class="text-muted">in portfolio</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Portfolio Distribution -->
+{% if optimization.get('analysis_details') %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Geographic Distribution</h5>
+            </div>
+            <div class="card-body">
+                {% for city, count in optimization.analysis_details.city_distribution.items() %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>{{ city }}</span>
+                        <span class="badge bg-primary">{{ count }} {% if count == 1 %}property{% else %}properties{% endif %}</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ (count / properties|length * 100)|int }}%">
+                            {{ (count / properties|length * 100)|int }}%
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-home"></i> Property Type Distribution</h5>
+            </div>
+            <div class="card-body">
+                {% for type, count in optimization.analysis_details.type_distribution.items() %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>{{ type }}</span>
+                        <span class="badge bg-success">{{ count }} {% if count == 1 %}property{% else %}properties{% endif %}</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ (count / properties|length * 100)|int }}%">
+                            {{ (count / properties|length * 100)|int }}%
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- AI Recommendations -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <h4 class="mb-0"><i class="fas fa-robot"></i> AI-Powered Recommendations</h4>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <i class="fas fa-lightbulb"></i> <strong>Advanced AI Analysis:</strong> 
+            These recommendations are generated using NVIDIA AI's analysis of your entire portfolio, 
+            market conditions, and diversification principles.
+        </div>
+        <ol class="mb-0">
+            {% for rec in optimization.recommendations %}
+            <li class="mb-3">
+                <strong>{{ rec }}</strong>
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+
+<!-- Action Suggestions -->
+<div class="row">
+    {% if optimization.sell_suggestion %}
+    <div class="col-md-6 mb-4">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-hand-holding-usd"></i> Consider Selling</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Suggested Property:</strong></p>
+                <p class="text-muted">{{ optimization.sell_suggestion }}</p>
+                <a href="{{ url_for('portfolio') }}" class="btn btn-outline-danger">
+                    <i class="fas fa-briefcase"></i> View Portfolio
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if optimization.buy_suggestion %}
+    <div class="col-md-6 mb-4">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Consider Buying</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Recommended Acquisition:</strong></p>
+                <p class="text-muted">{{ optimization.buy_suggestion }}</p>
+                <a href="{{ url_for('marketplace') }}" class="btn btn-outline-success">
+                    <i class="fas fa-store"></i> Browse Marketplace
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Diversification Guide -->
+<div class="card">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="fas fa-book"></i> Understanding Your Score</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <h6 class="text-success">High Score (80-100)</h6>
+                <ul class="small">
+                    <li>5+ different cities</li>
+                    <li>3+ property types</li>
+                    <li>8+ total properties</li>
+                    <li>Low risk profile</li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h6 class="text-warning">Medium Score (50-79)</h6>
+                <ul class="small">
+                    <li>3-4 different cities</li>
+                    <li>2-3 property types</li>
+                    <li>4-7 total properties</li>
+                    <li>Moderate risk</li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h6 class="text-danger">Low Score (0-49)</h6>
+                <ul class="small">
+                    <li>1-2 cities</li>
+                    <li>1-2 property types</li>
+                    <li>1-3 total properties</li>
+                    <li>High concentration risk</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- No Portfolio Message -->
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card text-center">
+            <div class="card-body py-5">
+                <i class="fas fa-chart-line fa-5x text-muted mb-4"></i>
+                <h3>No Portfolio to Optimize</h3>
+                <p class="text-muted mb-4">
+                    You need to own at least one property to get AI-powered portfolio optimization recommendations.
+                </p>
+                <a href="{{ url_for('marketplace') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-store"></i> Browse Properties
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Technical Details -->
+<div class="alert alert-secondary mt-4">
+    <h6><i class="fas fa-info-circle"></i> <strong>About This Feature</strong></h6>
+    <p class="mb-0 small">
+        The Portfolio Optimizer uses <strong>NVIDIA AI (LLaMA 3.1 405B)</strong> to analyze your entire property portfolio, 
+        calculating diversification scores, risk assessments, and providing strategic recommendations. 
+        This goes beyond simple chatbot interactions by performing complex multi-asset analysis and strategic planning.
+        The AI considers geographic distribution, property type mix, market conditions, and capital allocation 
+        to provide personalized optimization strategies.
+    </p>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Video{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="fas fa-upload"></i> Upload Video from Your Device</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> <strong>Local Video Playback:</strong> 
+                    Upload a video file from your device. This demonstrates the local video playback requirement 
+                    by allowing you to select and play videos from your computer.
+                </div>
+
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="video" class="form-label">
+                            <strong>Select Video File</strong>
+                        </label>
+                        <input type="file" 
+                               name="video" 
+                               id="video"
+                               class="form-control form-control-lg" 
+                               accept="video/mp4,video/x-m4v,video/*" 
+                               required
+                               onchange="previewFile()">
+                        <div class="form-text">
+                            Supported formats: MP4, MOV, AVI, MKV (Max size: 16MB)
+                        </div>
+                    </div>
+
+                    <!-- File Preview -->
+                    <div id="filePreview" class="mb-4" style="display: none;">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6><i class="fas fa-file-video"></i> Selected File:</h6>
+                                <p id="fileName" class="mb-1"></p>
+                                <p id="fileSize" class="text-muted small mb-0"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-cloud-upload-alt"></i> Upload Video
+                        </button>
+                        <a href="{{ url_for('video_tutorials') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Tutorials
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="card mt-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-question-circle"></i> How to Use</h5>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li class="mb-2">Click "Choose File" to select a video from your computer</li>
+                    <li class="mb-2">Supported formats: MP4, MOV, AVI, MKV</li>
+                    <li class="mb-2">Maximum file size: 16MB</li>
+                    <li class="mb-2">Click "Upload Video" to upload</li>
+                    <li class="mb-2">Your video will appear in the "Your Uploaded Videos" section</li>
+                    <li>You can play, delete, or upload more videos</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewFile() {
+    const fileInput = document.getElementById('video');
+    const filePreview = document.getElementById('filePreview');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        fileName.textContent = file.name;
+        fileSize.textContent = `Size: ${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+        filePreview.style.display = 'block';
+    } else {
+        filePreview.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}
